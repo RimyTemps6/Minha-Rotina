@@ -24,14 +24,20 @@ auth.onAuthStateChanged(u => {
 function loginView(){
   $('#app').innerHTML = `<div class="card login"><h1>🌱 Minha Rotina</h1>
   <p class="muted">Rotinas e lembretes para uma vida mais independente.</p>
-  <input id="em" type="email" placeholder="E-mail" autocomplete="email">
-  <input id="pw" type="password" placeholder="Senha (mínimo 6 caracteres)" autocomplete="current-password">
-  <button onclick="entrar()">Entrar</button>
-  <button class="sec" onclick="criar()">Criar conta</button>
+  <button onclick="loginGoogle()">Entrar com Google</button>
   <p id="err" class="err"></p></div>`;
 }
-async function entrar(){ try{ await auth.signInWithEmailAndPassword($('#em').value,$('#pw').value); }catch(e){ $('#err').textContent='Não foi possível entrar. Confira e-mail e senha. ('+e.code+')'; } }
-async function criar(){ try{ await auth.createUserWithEmailAndPassword($('#em').value,$('#pw').value); }catch(e){ $('#err').textContent='Não foi possível criar a conta. ('+e.code+')'; } }
+async function loginGoogle(){
+  const prov = new firebase.auth.GoogleAuthProvider();
+  try { await auth.signInWithPopup(prov); }
+  catch(e){
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
+      return auth.signInWithRedirect(prov);
+    }
+    if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
+    $('#err').textContent = 'Não foi possível entrar com o Google. (' + e.code + ')';
+  }
+}
 
 /* ---------- Dados ---------- */
 function listen(){
